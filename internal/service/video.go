@@ -1,10 +1,12 @@
 package service
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Video struct {
@@ -13,22 +15,52 @@ type Video struct {
 	Description string    `json:"description"`
 }
 
-type GetVideosResponse struct {
-	Videos []Video `json:"videos"`
-}
-
 func (svc *Service) HandleGetVideos(c *gin.Context) {
-	videos := GetVideosResponse{
-		Videos: make([]Video, 0),
-	}
+	var videos []Video
+
+	svc.DB.Find(&videos)
+
 	c.JSON(http.StatusOK, videos)
 }
 
 func (svc *Service) HandleGetVideo(c *gin.Context) {
-	videoID := c.Param("videoID")
-
-	var video Video
-	svc.DB.First(&video, "id = ?", videoID)
+	video, err := svc.getVideoByID(c)
+	if err != nil {
+		writeErrorResponse(c, err)
+		return
+	}
 
 	c.JSON(http.StatusOK, video)
+}
+
+func (svc *Service) HandleDeleteVideo(c *gin.Context) {
+	video, err := svc.getVideoByID(c)
+	if err != nil {
+		writeErrorResponse(c, err)
+		return
+	}
+
+	svc.DB.Delete(&video)
+
+	c.Status(http.StatusNoContent)
+}
+
+func (svc *Service) getVideoByID(c *gin.Context) (*Video, error) {
+	id := c.Param("videoID")
+
+	_, err := uuid.Parse(id)
+	if err != nil {
+		return nil, ErrInvalidUUID
+	}
+
+	var video Video
+	if result := svc.DB.First(&video, "id = ?", id); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrResourceNotFound
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	return &video, nil
 }
