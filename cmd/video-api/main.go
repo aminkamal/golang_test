@@ -19,6 +19,10 @@ func main() {
 		apiV1.POST("/videos", svc.HandleCreateVideo)
 		apiV1.GET("/videos/:videoID", svc.HandleGetVideo)
 		apiV1.DELETE("/videos/:videoID", svc.HandleDeleteVideo)
+
+		apiV1.POST("/videos/:videoID/annotations", svc.HandleCreateAnnotation)
+		apiV1.GET("/videos/:videoID/annotations", svc.HandleGetAnnotations)
+		apiV1.GET("/videos/:videoID/annotations/:annotationID", svc.HandleGetAnnotation)
 	}
 
 	r.Run()

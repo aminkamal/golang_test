@@ -1,27 +1,20 @@
 package middleware
 
 import (
-	"net/http"
 	"strings"
 
+	"github.com/aminkamal/golang_test/internal/service"
 	"github.com/gin-gonic/gin"
 )
-
-func writeError(c *gin.Context, err string) {
-	c.JSON(http.StatusForbidden, gin.H{
-		"error": err,
-	})
-}
 
 func ValidateAPIKey(c *gin.Context) {
 	apiKey := c.GetHeader("Authorization")
 	if strings.TrimSpace(apiKey) == "" {
-		writeError(c, "missing api key")
+		service.WriteErrorResponse(c, service.ErrMissingAPIKey)
 		c.Abort()
 	}
-
 	if apiKey != "hunter2" {
-		writeError(c, "invalid api key")
+		service.WriteErrorResponse(c, service.ErrInvalidAPIKey)
 		c.Abort()
 	}
 

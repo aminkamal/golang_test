@@ -21,7 +21,7 @@ type Video struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	URL         string    `json:"url"`
-	Duration    int64     `json:"duration"`
+	Duration    int       `json:"duration"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -49,11 +49,12 @@ func (svc *Service) HandleCreateVideo(c *gin.Context) {
 		Name:        req.Name,
 		Description: req.Description,
 		URL:         req.URL,
-		Duration:    int64(duration),
+		Duration:    duration,
 	}
 
 	if result := svc.DB.Create(&video); result.Error != nil {
 		WriteErrorResponse(c, ErrInternalServerError)
+		return
 	}
 
 	c.JSON(http.StatusCreated, video)

@@ -1,7 +1,7 @@
 FROM golang:1.19-bullseye as builder
 COPY . /var/build
 WORKDIR /var/build
-RUN make
+RUN make build
 
 
 FROM alpine:latest
