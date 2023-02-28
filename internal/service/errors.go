@@ -13,17 +13,21 @@ var (
 	ErrResourceNotFound    = errors.New("resource was not found")
 )
 
-func writeErrorResponse(c *gin.Context, err error) {
+func WriteErrorResponse(c *gin.Context, err error) {
 	if errors.Is(err, ErrInvalidUUID) {
-		c.JSON(http.StatusBadRequest, nil)
-	}
-
-	if errors.Is(err, ErrInternalServerError) {
+		writeError(c, http.StatusBadRequest, err)
+	} else if errors.Is(err, ErrInternalServerError) {
 		// TODO: Log this error
-		c.JSON(http.StatusInternalServerError, nil)
+		writeError(c, http.StatusInternalServerError, err)
+	} else if errors.Is(err, ErrResourceNotFound) {
+		writeError(c, http.StatusNotFound, err)
+	} else {
+		writeError(c, http.StatusBadRequest, err)
 	}
+}
 
-	if errors.Is(err, ErrInternalServerError) {
-		c.JSON(http.StatusNotFound, nil)
-	}
+func writeError(c *gin.Context, statusCode int, err error) {
+	c.JSON(statusCode, gin.H{
+		"error": err.Error(),
+	})
 }

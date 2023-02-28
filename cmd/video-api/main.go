@@ -16,6 +16,7 @@ func main() {
 	apiV1 := r.Group("/v1", middleware.ValidateAPIKey)
 	{
 		apiV1.GET("/videos", svc.HandleGetVideos)
+		apiV1.POST("/videos", svc.HandleCreateVideo)
 		apiV1.GET("/videos/:videoID", svc.HandleGetVideo)
 		apiV1.DELETE("/videos/:videoID", svc.HandleDeleteVideo)
 	}
