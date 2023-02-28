@@ -17,6 +17,7 @@ func main() {
 	{
 		apiV1.GET("/videos", svc.HandleGetVideos)
 		apiV1.GET("/videos/:videoID", svc.HandleGetVideo)
+		apiV1.DELETE("/videos/:videoID", svc.HandleDeleteVideo)
 	}
 
 	r.Run()
