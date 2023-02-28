@@ -1,6 +1,10 @@
 version: '3.8'
 
 services:
+  webserver:
+    build: .
+    ports:
+      - "8080:8080"
   db:
     container_name: test_db
     image: postgres:15

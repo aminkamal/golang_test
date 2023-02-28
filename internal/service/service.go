@@ -10,7 +10,9 @@ type Service struct {
 }
 
 func New() *Service {
-	db, err := gorm.Open(postgres.Open("postgres://postgres:password@localhost:5432/video_db"), &gorm.Config{})
+	// TODO: read from .env file
+	db, err := gorm.Open(postgres.Open("postgres://postgres:password@db:5432/video_db"), &gorm.Config{})
+	// db, err := gorm.Open(postgres.Open("postgres://postgres:password@localhost:5432/video_db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
