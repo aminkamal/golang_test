@@ -22,6 +22,8 @@ func main() {
 
 		apiV1.POST("/videos/:videoID/annotations", svc.HandleCreateAnnotation)
 		apiV1.GET("/videos/:videoID/annotations", svc.HandleGetAnnotations)
+		apiV1.PUT("/videos/:videoID/annotations/:annotationID", svc.HandlePutAnnotation)
+		apiV1.DELETE("/videos/:videoID/annotations/:annotationID", svc.HandleDeleteAnnotation)
 		apiV1.GET("/videos/:videoID/annotations/:annotationID", svc.HandleGetAnnotation)
 	}
 

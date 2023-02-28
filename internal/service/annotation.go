@@ -100,6 +100,55 @@ func (svc *Service) HandleGetAnnotation(c *gin.Context) {
 	c.JSON(http.StatusOK, annotation)
 }
 
+func (svc *Service) HandlePutAnnotation(c *gin.Context) {
+	video, err := svc.getVideoByID(c)
+	if err != nil {
+		WriteErrorResponse(c, err)
+		return
+	}
+
+	annotation, err := svc.getAnnotationByID(c)
+	if err != nil {
+		WriteErrorResponse(c, err)
+		return
+	}
+
+	var req CreateOrUpdateAnnotationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		WriteErrorResponse(c, err)
+		return
+	}
+
+	startMarker, err := parseMarker(req.StartMarker)
+	if err != nil {
+		WriteErrorResponse(c, err)
+		return
+	}
+
+	endMarker, err := parseMarker(req.EndMarker)
+	if err != nil {
+		WriteErrorResponse(c, err)
+		return
+	}
+
+	if !validRange(*startMarker, *endMarker, video.Duration) {
+		WriteErrorResponse(c, ErrInvalidTimeRange)
+		return
+	}
+
+	annotation.Note = req.Note
+	annotation.Type = req.Type
+	annotation.StartMarker = *startMarker
+	annotation.EndMarker = *endMarker
+
+	if result := svc.DB.Save(&annotation); result.Error != nil {
+		WriteErrorResponse(c, ErrInternalServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, annotation)
+}
+
 func (svc *Service) HandleDeleteAnnotation(c *gin.Context) {
 	annotation, err := svc.getAnnotationByID(c)
 	if err != nil {
@@ -124,7 +173,7 @@ func parseMarker(timeStr string) (*int, error) {
 	}
 
 	components := strings.Split(timeStr, ":")
-	if len(components) != 2 {
+	if len(components) != 3 {
 		return nil, ErrInvalidTimeFormat
 	}
 

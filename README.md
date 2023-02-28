@@ -23,7 +23,7 @@ make compose_down
 ```
 curl -H "Authorization: hunter2" \
      -X POST http://localhost:8080/v1/videos \
-     -d "{\"name\": \"Baby Shark!\", \"description\": \"doo doo doo doo\", \"url\": \"https://bucket.storage.com/abc123/video.mp4\"}"
+     -d "{\"name\": \"Baby Shark\", \"description\": \"doo doo doo doo\", \"url\": \"https://bucket.storage.com/abc123/video.mp4\"}"
 ```
 
 ### List videos
@@ -52,6 +52,14 @@ curl -H "Authorization: hunter2" \
 curl -H "Authorization: hunter2" \
      -X POST http://localhost:8080/v1/videos/<VIDEO_UUID>/annotations \
      -d "{\"note\": \"this contains an advertisement\", \"type\": \"different_language\", \"start\": \"00:59:04\", \"end\": \"01:00:00\"}"
+```
+
+### Update an annotation
+
+```
+curl -H "Authorization: hunter2" \
+     -X PUT http://localhost:8080/v1/videos/<VIDEO_UUID>/annotations/<ANNOTATION_UUID> \
+     -d "{\"note\": \"this contains an advertisement\", \"type\": \"advertisement\", \"start\": \"00:27:15\", \"end\": \"00:35:17\"}"
 ```
 
 ### Get annotations for a video
