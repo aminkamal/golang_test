@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aminkamal/golang_test/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -37,7 +38,7 @@ func (svc *Service) HandleGetVideos(c *gin.Context) {
 func (svc *Service) HandleCreateVideo(c *gin.Context) {
 	var req CreateVideoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
@@ -53,7 +54,7 @@ func (svc *Service) HandleCreateVideo(c *gin.Context) {
 	}
 
 	if result := svc.DB.Create(&video); result.Error != nil {
-		WriteErrorResponse(c, ErrInternalServerError)
+		response.WriteErrorResponse(c, response.ErrInternalServerError)
 		return
 	}
 
@@ -63,7 +64,7 @@ func (svc *Service) HandleCreateVideo(c *gin.Context) {
 func (svc *Service) HandleGetVideo(c *gin.Context) {
 	video, err := svc.getVideoByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
@@ -73,7 +74,7 @@ func (svc *Service) HandleGetVideo(c *gin.Context) {
 func (svc *Service) HandleDeleteVideo(c *gin.Context) {
 	video, err := svc.getVideoByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
@@ -87,16 +88,16 @@ func (svc *Service) getVideoByID(c *gin.Context) (*Video, error) {
 
 	_, err := uuid.Parse(id)
 	if err != nil {
-		return nil, ErrInvalidUUID
+		return nil, response.ErrInvalidUUID
 	}
 
 	var video Video
 	if result := svc.DB.First(&video, "id = ?", id); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, ErrResourceNotFound
+			return nil, response.ErrResourceNotFound
 		}
 
-		return nil, ErrInternalServerError
+		return nil, response.ErrInternalServerError
 	}
 
 	return &video, nil

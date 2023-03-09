@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aminkamal/golang_test/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -33,7 +34,7 @@ type Annotation struct {
 func (svc *Service) HandleGetAnnotations(c *gin.Context) {
 	video, err := svc.getVideoByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
@@ -47,30 +48,30 @@ func (svc *Service) HandleGetAnnotations(c *gin.Context) {
 func (svc *Service) HandleCreateAnnotation(c *gin.Context) {
 	video, err := svc.getVideoByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	var req CreateOrUpdateAnnotationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	startMarker, err := parseMarker(req.StartMarker)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	endMarker, err := parseMarker(req.EndMarker)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	if !validRange(*startMarker, *endMarker, video.Duration) {
-		WriteErrorResponse(c, ErrInvalidTimeRange)
+		response.WriteErrorResponse(c, response.ErrInvalidTimeRange)
 		return
 	}
 
@@ -83,7 +84,7 @@ func (svc *Service) HandleCreateAnnotation(c *gin.Context) {
 	}
 
 	if result := svc.DB.Create(&annotation); result.Error != nil {
-		WriteErrorResponse(c, ErrInternalServerError)
+		response.WriteErrorResponse(c, response.ErrInternalServerError)
 		return
 	}
 
@@ -93,7 +94,7 @@ func (svc *Service) HandleCreateAnnotation(c *gin.Context) {
 func (svc *Service) HandleGetAnnotation(c *gin.Context) {
 	annotation, err := svc.getAnnotationByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
@@ -103,36 +104,36 @@ func (svc *Service) HandleGetAnnotation(c *gin.Context) {
 func (svc *Service) HandlePutAnnotation(c *gin.Context) {
 	video, err := svc.getVideoByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	annotation, err := svc.getAnnotationByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	var req CreateOrUpdateAnnotationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	startMarker, err := parseMarker(req.StartMarker)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	endMarker, err := parseMarker(req.EndMarker)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
 	if !validRange(*startMarker, *endMarker, video.Duration) {
-		WriteErrorResponse(c, ErrInvalidTimeRange)
+		response.WriteErrorResponse(c, response.ErrInvalidTimeRange)
 		return
 	}
 
@@ -142,7 +143,7 @@ func (svc *Service) HandlePutAnnotation(c *gin.Context) {
 	annotation.EndMarker = *endMarker
 
 	if result := svc.DB.Save(&annotation); result.Error != nil {
-		WriteErrorResponse(c, ErrInternalServerError)
+		response.WriteErrorResponse(c, response.ErrInternalServerError)
 		return
 	}
 
@@ -152,7 +153,7 @@ func (svc *Service) HandlePutAnnotation(c *gin.Context) {
 func (svc *Service) HandleDeleteAnnotation(c *gin.Context) {
 	annotation, err := svc.getAnnotationByID(c)
 	if err != nil {
-		WriteErrorResponse(c, err)
+		response.WriteErrorResponse(c, err)
 		return
 	}
 
@@ -169,12 +170,12 @@ func validRange(startMarker int, endMarker int, duration int) bool {
 
 func parseMarker(timeStr string) (*int, error) {
 	if len(timeStr) != 8 {
-		return nil, ErrInvalidTimeFormat
+		return nil, response.ErrInvalidTimeFormat
 	}
 
 	components := strings.Split(timeStr, ":")
 	if len(components) != 3 {
-		return nil, ErrInvalidTimeFormat
+		return nil, response.ErrInvalidTimeFormat
 	}
 
 	parseComponent := func(numStr string, max int) *int {
@@ -194,7 +195,7 @@ func parseMarker(timeStr string) (*int, error) {
 	seconds := parseComponent(components[2], 59)
 
 	if hours == nil || minutes == nil || seconds == nil {
-		return nil, ErrInvalidTimeFormat
+		return nil, response.ErrInvalidTimeFormat
 	}
 
 	offsetSeconds := (*seconds) + (*minutes)*60 + (*hours)*3600
@@ -208,21 +209,21 @@ func (svc *Service) getAnnotationByID(c *gin.Context) (*Annotation, error) {
 
 	_, err := uuid.Parse(videoID)
 	if err != nil {
-		return nil, ErrInvalidUUID
+		return nil, response.ErrInvalidUUID
 	}
 
 	_, err = uuid.Parse(annotationID)
 	if err != nil {
-		return nil, ErrInvalidUUID
+		return nil, response.ErrInvalidUUID
 	}
 
 	var annotation Annotation
 	if result := svc.DB.First(&annotation, "id = ? and video_id = ?", annotationID, videoID); result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, ErrResourceNotFound
+			return nil, response.ErrResourceNotFound
 		}
 
-		return nil, ErrInternalServerError
+		return nil, response.ErrInternalServerError
 	}
 
 	return &annotation, nil

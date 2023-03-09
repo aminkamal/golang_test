@@ -4,7 +4,7 @@ GOBIN=${shell pwd}/bin
 export GOBIN
 
 all: db_start db_setup
-	docker compose up webserver -d
+	docker compose up --build webserver -d
 
 build:
 	CGO_ENABLED=0 go install ./...
@@ -16,6 +16,9 @@ db_setup:
 db_start:
 	docker compose up db -d
 	sleep 3
+
+test:
+	go test -count=1 ./...
 
 compose_down:
 	docker compose down -v
